@@ -1,24 +1,29 @@
 package com.eneo.support.controller;
 
-import com.eneo.support.dto.AgentLocationRequest;
+import com.eneo.support.dto.*;
 import com.eneo.support.model.Intervention;
-import com.eneo.support.service.AgentService; // AJOUT
+import com.eneo.support.model.Message;
+import com.eneo.support.service.AgentService;
 import com.eneo.support.service.InterventionService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*; // AJOUT
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Contrôleur REST exposant les endpoints pour l'interface d'administration.
+ * VERSION FINALE : Inclut la gestion complète des interventions et de la messagerie.
+ */
 @RestController
 @RequestMapping("/api/v1/admin")
 public class AdminController {
 
     private final InterventionService interventionService;
-    private final AgentService agentService; // AJOUT
+    private final AgentService agentService;
 
-    public AdminController(InterventionService interventionService, AgentService agentService) { // AJOUT
+    public AdminController(InterventionService interventionService, AgentService agentService) {
         this.interventionService = interventionService;
-        this.agentService = agentService; // AJOUT
+        this.agentService = agentService;
     }
 
     @GetMapping("/interventions")
@@ -27,23 +32,40 @@ public class AdminController {
         return ResponseEntity.ok(interventions);
     }
 
-    /**
-     * NOUVEL ENDPOINT : Récupère la liste de tous les agents en ligne.
-     * @return Une liste des agents et de leur dernière localisation connue.
-     */
-    @GetMapping("/agents/online")
-    public ResponseEntity<List<AgentLocationRequest>> getOnlineAgents() {
-        List<AgentLocationRequest> onlineAgents = agentService.getOnlineAgents().collectList().block();
-        return ResponseEntity.ok(onlineAgents);
+    @GetMapping("/agents")
+    public ResponseEntity<List<AgentStatusResponse>> getAllAgents() {
+        List<AgentStatusResponse> allAgents = agentService.getAllAgentsWithStatus();
+        return ResponseEntity.ok(allAgents);
     }
 
-    @PostMapping("/interventions/{interventionId}/assign/{agentId}")
-    public ResponseEntity<Intervention> assignIntervention(
+    @PutMapping("/interventions/{interventionId}")
+    public ResponseEntity<Intervention> updateIntervention(
             @PathVariable Long interventionId,
-            @PathVariable Long agentId) {
+            @RequestBody InterventionUpdateRequest request) {
 
-        return interventionService.assignIntervention(interventionId, agentId)
-                .map(ResponseEntity::ok) // Si l'intervention est trouvée et mise à jour, renvoyer 200 OK
-                .orElse(ResponseEntity.notFound().build()); // Sinon, renvoyer 404 Not Found
+        return interventionService.updateIntervention(interventionId, request)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/interventions/{interventionId}/assign")
+    public ResponseEntity<Intervention> assignAgents(
+            @PathVariable Long interventionId,
+            @RequestBody AssignAgentsRequest request) {
+
+        return interventionService.assignAgentsToIntervention(interventionId, request.getAgentIds())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/interventions/{interventionId}/messages")
+    public ResponseEntity<List<Message>> getInterventionMessages(@PathVariable Long interventionId) {
+        return ResponseEntity.ok(interventionService.getMessagesForIntervention(interventionId));
+    }
+
+    @PostMapping("/interventions/{interventionId}/messages")
+    public ResponseEntity<Void> postAdminMessage(@PathVariable Long interventionId, @RequestBody MessageRequest messageRequest) {
+        interventionService.postMessageFromAdmin(interventionId, messageRequest.getContent());
+        return ResponseEntity.ok().build();
     }
 }

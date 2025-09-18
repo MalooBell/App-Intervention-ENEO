@@ -1,6 +1,5 @@
 package com.eneo.support.controller;
 
-import com.eneo.support.dto.AgentMessageRequest;
 import com.eneo.support.dto.ChatMessageRequest;
 import com.eneo.support.dto.ChatMessageResponse;
 import com.eneo.support.service.ChatService;
@@ -13,7 +12,8 @@ import reactor.core.publisher.Mono;
 
 /**
  * Le contrôleur REST qui expose notre logique de chat au monde extérieur.
- * C'est la "porte d'entrée" de notre API.
+ * C'est la "porte d'entrée" pour les clients utilisant l'application mobile.
+ * VERSION CORRIGÉE : L'endpoint obsolète du webhook a été supprimé.
  */
 @RestController
 @RequestMapping("/api/v1/chat")
@@ -26,27 +26,22 @@ public class ChatController {
     }
 
     /**
-     * Endpoint pour recevoir un nouveau message de l'utilisateur et démarrer le traitement.
-     * @param request Le corps de la requête contenant le message de l'utilisateur.
-     * @return Une réponse contenant le message de l'IA.
+     * Endpoint pour recevoir un message d'un client.
+     * Déclenche la création d'une intervention ou ajoute le message à une conversation existante.
+     * @param request Le corps de la requête contenant le message et les informations de session.
+     * @return Une réponse de confirmation simple.
      */
     @PostMapping("/message")
     public Mono<ResponseEntity<ChatMessageResponse>> handleChatMessage(@RequestBody ChatMessageRequest request) {
-        // Correction de l'appel de méthode
         return chatService.processUserMessage(request)
-                .map(response -> ResponseEntity.ok(response)) // Si tout va bien, renvoyer une réponse 200 OK avec le corps
-                .defaultIfEmpty(ResponseEntity.notFound().build()); // S'il n'y a pas de réponse, renvoyer une erreur 404 Not Found
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.badRequest().build()); // Renvoie une erreur 400 si le Mono est vide
     }
 
-    /**
-     * Endpoint pour recevoir les mises à jour venant des agents via notre orchestrateur (n8n).
-     * @param request Le corps de la requête contenant l'ID du ticket et le message de l'agent.
-     * @return Une réponse vide avec un statut 200 OK pour confirmer la réception.
+    /*
+     * L'endpoint @PostMapping("/webhook/update") a été supprimé car la méthode
+     * chatService.handleAgentReply() n'existe plus dans la nouvelle architecture.
+     * La communication de l'admin se fait maintenant via les endpoints de AdminController
+     * et les WebSockets.
      */
-    @PostMapping("/webhook/update")
-    public ResponseEntity<Void> handleWebhookUpdate(@RequestBody AgentMessageRequest request) {
-        // Cette méthode peut rester telle quelle si vous prévoyez de la réutiliser
-        chatService.handleAgentReply(request);
-        return ResponseEntity.ok().build();
-    }
 }

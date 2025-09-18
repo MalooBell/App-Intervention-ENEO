@@ -12,4 +12,6 @@ import lombok.NoArgsConstructor;
 public class ZammadTicketResponse {
     private Long id;
     private Long customer_id;
+
+
 }

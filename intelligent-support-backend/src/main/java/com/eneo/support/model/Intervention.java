@@ -1,14 +1,22 @@
 package com.eneo.support.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Entité JPA représentant une intervention sur le terrain.
- * Cette table sera notre source de vérité pour le suivi des missions.
+ * VERSION LOMBOK : Utilise @Data pour générer automatiquement les getters, setters, toString, etc.
  */
+@Data // Annotation Lombok qui remplace getters, setters, toString, equals, hashCode
 @Entity
 @Table(name = "interventions")
 public class Intervention {
@@ -33,9 +41,8 @@ public class Intervention {
     @Column(nullable = false)
     private double longitude;
 
-    private Long agentId; // ID de l'agent assigné
-
-    private Long customerId; // ID du client Zammad
+    @Column(nullable = true)
+    private Long customerId;
 
     @CreationTimestamp
     private Instant createdAt;
@@ -43,84 +50,17 @@ public class Intervention {
     @UpdateTimestamp
     private Instant updatedAt;
 
-    // Getters et Setters
-    public Long getId() {
-        return id;
-    }
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "intervention_agents",
+            joinColumns = @JoinColumn(name = "intervention_id"),
+            inverseJoinColumns = @JoinColumn(name = "agent_id")
+    )
+    @JsonManagedReference // Côté "parent" pour la relation avec Agent (évite boucle JSON)
+    private Set<Agent> assignedAgents = new HashSet<>();
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @OneToMany(mappedBy = "intervention", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // Côté "parent" pour la relation avec Message (évite boucle JSON)
+    private List<Message> messages = new ArrayList<>();
 
-    public Long getZammadTicketId() {
-        return zammadTicketId;
-    }
-
-    public void setZammadTicketId(Long zammadTicketId) {
-        this.zammadTicketId = zammadTicketId;
-    }
-
-    public InterventionStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(InterventionStatus status) {
-        this.status = status;
-    }
-
-    public String getProblemDescription() {
-        return problemDescription;
-    }
-
-    public void setProblemDescription(String problemDescription) {
-        this.problemDescription = problemDescription;
-    }
-
-    public double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
-    }
-
-    public double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
-    }
-
-    public Long getAgentId() {
-        return agentId;
-    }
-
-    public void setAgentId(Long agentId) {
-        this.agentId = agentId;
-    }
-
-    public Long getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(Long customerId) {
-        this.customerId = customerId;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }

@@ -1,0 +1,144 @@
+Persona: Tu es un développeur Full-Stack senior avec une expertise de classe mondiale en React, TypeScript et en architecture d'applications temps réel. Tu es maître dans l'art de créer des interfaces utilisateur esthétiques, fluides et hautement interactives en utilisant des technologies de pointe comme Shadcn/ui, Tailwind CSS, Framer Motion et Zustand. Ton code est exemplaire : modulaire, performant, robuste et respectant les meilleures pratiques de l'industrie.
+
+Objectif du Projet:
+
+Construire une application web (SPA) de niveau professionnel nommée "ENEO Operations Hub". C'est un tableau de bord de supervision et de gestion pour les administrateurs d'ENEO. L'application doit permettre la visualisation et la gestion en temps réel d'interventions sur le terrain, la communication directe avec les clients et l'assignation des équipes d'agents.
+
+Exigences Clés (Design & UX):
+
+Esthétique : Crée une interface épurée, moderne et professionnelle. L'expérience utilisateur doit être fluide et intuitive.
+
+Palette de Couleurs (Thème ENEO) :
+
+Primaire (Boutons, icônes actives, en-têtes) : Bleu ENEO - hsl(207, 100%, 35%)
+
+Accent & Succès : Vert ENEO - hsl(142, 71%, 45%)
+
+Fond Principal : Blanc cassé - hsl(210, 40%, 98%)
+
+Fond des Panneaux/Cartes : Blanc pur - hsl(0, 0%, 100%)
+
+Texte : Gris foncé - hsl(215, 28%, 17%)
+
+Transitions & Animations : Toutes les transitions d'état et apparitions d'éléments (modales, panneaux) doivent être fluides et subtiles. Utilise la librairie Framer Motion pour gérer ces animations.
+
+Spécifications Techniques Impératives:
+
+Framework : React 18+ avec TypeScript (mode strict activé), initialisé avec Vite.
+
+Composants UI : Shadcn/ui. Intègre-le en suivant la documentation officielle.
+
+Styling : Tailwind CSS.
+
+Animations : Framer Motion.
+
+Cartographie : Google Maps, via la librairie @react-google-maps/api.
+
+Gestion d'État Globale : Zustand. Crée un store pour gérer l'état global des interventions, des agents et de l'état de l'UI (ex: intervention sélectionnée).
+
+Variables d'Environnement : Le projet doit utiliser un fichier .env pour les variables suivantes :
+
+VITE_GOOGLE_MAPS_API_KEY: La clé d'API pour Google Maps.
+
+VITE_API_BASE_URL: L'URL de notre backend (ex: http://localhost:8082).
+
+VITE_WS_BASE_URL: L'URL du serveur WebSocket (ex: ws://localhost:8082).
+
+Structure Professionnelle du Code :
+
+Organise les fichiers de manière modulaire et scalable :
+
+src/pages/ : Contient la page principale du tableau de bord.
+
+src/components/ : Contient les composants UI réutilisables, organisés en sous-dossiers :
+
+layout/ (Sidebar, Header, etc.)
+
+map/ (Composant principal de la carte, marqueurs personnalisés)
+
+dashboard/ (Panneaux, listes, etc.)
+
+chat/ (Fenêtre de chat, bulles de message)
+
+src/services/ : Contient les fonctions d'appel à l'API backend (ex: api.ts).
+
+src/hooks/ : Contient les hooks personnalisés (ex: useWebSocket.ts pour gérer la connexion WebSocket).
+
+src/store/ : Contient le store Zustand (useAppStore.ts).
+
+src/types/ : Contient toutes les définitions d'interfaces TypeScript (index.ts).
+
+Fonctionnalités Détaillées et Endpoints Backend :
+
+Le backend est entièrement défini. Tu dois intégrer les endpoints suivants :
+
+Tableau de Bord Principal :
+
+Layout : Une Sidebar fixe à gauche et une zone de contenu principale.
+
+Rafraîchissement des données : Les données des interventions et des agents doivent être rafraîchies toutes les 20 secondes en appelant les APIs correspondantes.
+
+Carte Google Maps :
+
+Affiche les marqueurs des interventions, colorés selon leur statut.
+
+Permet le drag-and-drop d'un marqueur d'intervention. Au relâchement, appelle PUT /api/v1/admin/interventions/{id} avec les nouvelles coordonnées.
+
+Affiche les marqueurs des agents (icône différente), colorés selon leur statut "En ligne" / "Hors ligne".
+
+Panneau d'information :
+
+Liste toutes les interventions, filtrable par statut.
+
+Au clic sur une intervention, un panneau de détails s'ouvre.
+
+Liste tous les agents avec leur statut "En ligne" / "Hors ligne" et lastSeenAt.
+
+Panneau de Détails d'une Intervention (au clic) :
+
+Onglet "Détails" :
+
+Affiche la description et les coordonnées dans des champs éditables. Un bouton "Sauvegarder" appelle PUT /api/v1/admin/interventions/{id}.
+
+Affiche la liste des agents assignés. Un bouton "Assigner une équipe" ouvre une modale.
+
+La modale d'assignation permet de sélectionner plusieurs agents et appelle POST /api/v1/admin/interventions/{id}/assign avec { "agentIds": [77, 88] }.
+
+Un bouton "Clôturer l'intervention" appelle POST /api/v1/agent/interventions/{id}/resolve.
+
+Onglet "Chat" :
+
+Au chargement, établit une connexion WebSocket à VITE_WS_BASE_URL/ws/chat/{interventionId}.
+
+Charge l'historique en appelant GET /api/v1/admin/interventions/{id}/messages.
+
+Permet d'envoyer un message via POST /api/v1/admin/interventions/{id}/messages avec { "content": "..." }.
+
+Écoute le WebSocket pour afficher les nouveaux messages du client en temps réel.
+
+Spécifications des APIs à intégrer :
+
+Récupérer Interventions : GET /api/v1/admin/interventions
+
+Récupérer Agents : GET /api/v1/admin/agents
+
+Modifier Intervention : PUT /api/v1/admin/interventions/{id}
+
+Corps : { "problemDescription": "...", "latitude": ..., "longitude": ... }
+
+Assigner Agents : POST /api/v1/admin/interventions/{id}/assign
+
+Corps : { "agentIds": [id1, id2, ...] }
+
+Récupérer Messages : GET /api/v1/admin/interventions/{id}/messages
+
+Envoyer Message : POST /api/v1/admin/interventions/{id}/messages
+
+Corps : { "content": "..." }
+
+Résoudre Intervention : POST /api/v1/agent/interventions/{id}/resolve
+
+Construis cette application en respectant scrupuleusement chaque point de ce cahier des charges. Le code final doit être robuste, maintenable et prêt pour le déploiement.
+
+Le projet doit être HYPER RESPONSIVE
+N'oublie pas la page agent, intervention et paramètres
